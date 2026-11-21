@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>অ্যাডস হাব</title>
+<style>
+:root{--bg:#f5f6fa;--card:#fff;--tx:#1b1d29;--mut:#6b7080;--bd:#e3e5ee;--ac:#5b3df5;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12131a;--card:#1c1e2a;--tx:#eef0f8;--mut:#9a9fb3;--bd:#2c2f40}}
+:root[data-theme="dark"]{--bg:#12131a;--card:#1c1e2a;--tx:#eef0f8;--mut:#9a9fb3;--bd:#2c2f40}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:"Noto Sans Bengali",system-ui,sans-serif;padding-bottom:84px}
+.wrap{max-width:520px;margin:0 auto;padding:12px}
+header{display:flex;justify-content:space-between;align-items:center;padding:6px 2px 10px}
+h1{font-size:20px;margin:0}
+.cnt{font-size:12px;color:var(--mut);background:var(--card);border:1px solid var(--bd);padding:4px 10px;border-radius:99px}
+.post{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:14px;margin:10px 0}
+.post h3{margin:0 0 6px;font-size:16px}
+.post p{margin:0;color:var(--mut);font-size:14px;line-height:1.6}
+.ad{position:relative;border-radius:14px;padding:14px 14px 14px;margin:10px 0;color:#fff;overflow:hidden;animation:pop .4s}
+.ad .tag{position:absolute;top:8px;right:10px;font-size:10px;background:rgba(0,0,0,.35);padding:2px 7px;border-radius:99px}
+.ad b{display:block;font-size:16px;margin:8px 0 4px}
+.ad span.t{font-size:13px;opacity:.92}
+.ad button,.pop button.go{margin-top:10px;border:0;background:#fff;color:#111;font-weight:700;padding:8px 16px;border-radius:99px;font-family:inherit}
+.ad.big{padding:34px 14px}
+.top{margin:0 0 6px}
+.bottom{position:fixed;left:0;right:0;bottom:0;z-index:20;padding:8px 10px calc(8px + env(safe-area-inset-bottom,0px));background:var(--bg);border-top:1px solid var(--bd)}
+.bottom .ad{margin:0;padding:10px 12px;display:flex;align-items:center;gap:10px}
+.bottom .ad b{margin:0;font-size:14px}
+.bottom .ad button{margin:0 0 0 auto;padding:6px 12px;white-space:nowrap}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:50;display:none;align-items:center;justify-content:center;padding:20px}
+.ov.on{display:flex}
+.pop{width:100%;max-width:360px;border-radius:18px;color:#fff;padding:26px 20px;position:relative;text-align:center}
+.pop h2{margin:8px 0}
+.x{position:absolute;top:10px;right:10px;border:0;background:rgba(0,0,0,.4);color:#fff;border-radius:99px;min-width:34px;height:34px;font-family:inherit}
+.x:disabled{opacity:.7}
+#more{text-align:center;color:var(--mut);padding:16px;font-size:13px}
+@keyframes pop{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><h1>📢 অ্যাডস হাব</h1><span class="cnt">বিজ্ঞাপন দেখানো হয়েছে: <b id="n">0</b></span></header>
+  <div id="top" class="top"></div>
+  <div id="feed"></div>
+  <div id="more">আরও লোড হচ্ছে…</div>
+</div>
+<div class="bottom" id="bottom"></div>
+<div class="ov" id="ov"><div class="pop" id="pop"></div></div>
+
+<script>
+// ===== সেটিংস: এখানে সব পরিবর্তন করুন =====
+const CONFIG={
+  inmobi:{            // InMobi আইডি (Android অ্যাপে SDK-তে ব্যবহার হবে)
+    appId:"10000257917",
+    interstitial:"10000869549",
+    banner:"10000889562",
+    rewarded:"10000889563",
+    video:"10000889564",
+    native:"10000889565"
+  },
+  topBannerMs:4000,      // উপরের ব্যানার বদলানোর সময়
+  bottomBannerMs:5000,   // নিচের ব্যানার বদলানোর সময়
+  popupFirstMs:15000,     // প্রথম পপআপ কত সেকেন্ড পরে
+  popupEveryMs:90000,    // পপআপ কত পরপর
+  popupCloseSec:5        // পপআপ বন্ধ করতে কত সেকেন্ড অপেক্ষা
+};
+// এখানে নিজের বিজ্ঞাপন যোগ করুন (শিরোনাম, লেখা, বাটন, রং)
+const ADS=[
+ {link:"https://example.com",t:"🔥 ৫০% ছাড়!",d:"আজই কিনুন, অফার সীমিত সময়ের জন্য",c:"কিনুন",bg:"linear-gradient(135deg,#ff5f6d,#ffc371)"},
+ {t:"📱 নতুন স্মার্টফোন",d:"সেরা দামে সেরা ফিচার",c:"দেখুন",bg:"linear-gradient(135deg,#5b3df5,#8e6bff)"},
+ {t:"💰 ঘরে বসে আয় করুন",d:"প্রতিদিন ভিডিও দেখে ইনকাম",c:"শুরু করুন",bg:"linear-gradient(135deg,#11998e,#38ef7d)"},
+ {t:"🍔 ফ্রি ডেলিভারি",d:"প্রথম অর্ডারে ডেলিভারি ফ্রি",c:"অর্ডার",bg:"linear-gradient(135deg,#f12711,#f5af19)"},
+ {t:"🎓 অনলাইন কোর্স",d:"নতুন কিছু শিখুন, ক্যারিয়ার গড়ুন",c:"ভর্তি হোন",bg:"linear-gradient(135deg,#2193b0,#6dd5ed)"},
+ {t:"🎮 গেম খেলুন",d:"লক্ষ ইউজারের সাথে খেলুন",c:"ডাউনলোড",bg:"linear-gradient(135deg,#8e2de2,#4a00e0)"},
+ {t:"✈️ সস্তায় ভ্রমণ",d:"ফ্লাইট ও হোটেলে বিশেষ অফার",c:"বুক করুন",bg:"linear-gradient(135deg,#0f2027,#2c5364)"}
+];
+const POSTS=["আজকের সেরা টিপস","স্বাস্থ্য ও ফিটনেস","প্রযুক্তির খবর","রান্নার রেসিপি","ক্যারিয়ার পরামর্শ","খেলার হাইলাইটস","ভ্রমণ গাইড","টাকা সঞ্চয়ের উপায়"];
+let imp=0,pi=0,ai=0;
+const $=id=>document.getElementById(id);
+function count(){imp++;$("n").textContent=imp}
+function go(a){ if(a.link){window.open(a.link,"_blank")} else {alert("এই নমুনা বিজ্ঞাপনে লিংক দেওয়া নেই। ADS তালিকায় link:\"https://...\" যোগ করুন।")} }
+function ad(cls){
+  const a=ADS[ai++%ADS.length];
+  const e=document.createElement("div");
+  e.className="ad "+(cls||"");
+  e.style.background=a.bg;
+  e.innerHTML='<span class="tag">বিজ্ঞাপন</span><b>'+a.t+'</b><span class="t">'+a.d+'</span><br><button>'+a.c+'</button>';
+  e.querySelector("button").onclick=()=>go(a);
+  count();return e;
+}
+function post(){
+  const e=document.createElement("div");e.className="post";
+  const t=POSTS[pi++%POSTS.length];
+  e.innerHTML="<h3>"+t+" #"+pi+"</h3><p>এটি একটি নমুনা লেখা। এখানে আপনার আসল কনটেন্ট বসবে, আর তার মাঝে মাঝে বিজ্ঞাপন দেখানো হবে।</p>";
+  return e;
+}
+function load(){
+  const f=$("feed");
+  for(let i=0;i<4;i++){f.append(post());f.append(ad(i%2?"big":""));}
+}
+// উপরের ব্যানার প্রতি ৪ সেকেন্ডে বদলায়
+function topBanner(){$("top").replaceChildren(ad("big"))}
+// নিচের ফিক্সড ব্যানার প্রতি ৫ সেকেন্ডে বদলায়
+function bottomBanner(){$("bottom").replaceChildren(ad())}
+// পপআপ বিজ্ঞাপন প্রতি ২৫ সেকেন্ডে
+function popup(){
+  const a=ADS[ai++%ADS.length];count();
+  const p=$("pop");p.style.background=a.bg;
+  p.innerHTML='<button class="x" id="x" disabled>…</button><div style="font-size:11px;opacity:.8">বিজ্ঞাপন</div><h2>'+a.t+'</h2><div>'+a.d+'</div><button class="go" id="pgo">'+a.c+'</button>';
+  $("pgo").onclick=()=>go(a);
+  $("ov").classList.add("on");
+  let s=CONFIG.popupCloseSec;const x=$("x");
+  const iv=setInterval(()=>{s--;if(s>0)x.textContent=s;else{clearInterval(iv);x.disabled=false;x.textContent="✕";x.onclick=()=>$("ov").classList.remove("on")}},1000);
+}
+load();topBanner();bottomBanner();
+setInterval(topBanner,CONFIG.topBannerMs);
+setInterval(bottomBanner,CONFIG.bottomBannerMs);
+setTimeout(popup,CONFIG.popupFirstMs);
+setInterval(()=>{if(!$("ov").classList.contains("on"))popup()},CONFIG.popupEveryMs);
+new IntersectionObserver(es=>{if(es[0].isIntersecting)load()}).observe($("more"));
+</script>
+</body>
+</html>
